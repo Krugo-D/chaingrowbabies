@@ -19,15 +19,16 @@ const alchemyUrl = process.env.ALCHEMY_URL;
  */
 module.exports = {
   solidity: "0.8.9",
+  defaultNetwork: "hardhat",
   networks: {
-    goerli: {
-      url: alchemyUrl,
+    hardhat: {
+      //url: alchemyUrl,
       forking: {
         url: alchemyUrl
       },
-      accounts: {
-        mnemonic: mnemonic
-      },
+      //accounts: {
+      //  mnemonic: "test test test test test test test test test test test junk"
+      //},
     }
   }
 };
