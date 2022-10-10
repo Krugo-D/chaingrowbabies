@@ -3,6 +3,7 @@ import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
 pragma solidity 0.8.9;
 /**
@@ -74,6 +75,8 @@ pragma solidity 0.8.9;
  */
 contract ChainGrowBabiesNFT is ChainlinkClient, ERC721, Ownable {
     using Chainlink for Chainlink.Request;
+    using Counters for Counters.Counter;
+    Counters.Counter private _tokenIdCounter;
     IERC20 private _token;
 
     /* ========== CONSUMER STATE VARIABLES ========== */
@@ -91,19 +94,19 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721, Ownable {
         uint8 uvIndex;
         uint8 weatherIcon;
     }
-    struct CityData {
-        uint256 locationKey;
+    struct CityWeather {
+        string cityName;
         uint24 precipitationPastHour;
         int16 temperature;
         uint16 windSpeed;
+        uint256 lastUpdated;
     }
-
-    bool canMove = true;
-    bool gameStarted = false;
 
     // Maps
     mapping(bytes32 => CurrentConditionsResult) public requestIdCurrentConditionsResult;
-    mapping(uint256 => CityData) cities; // maps locationKey to matching CityData
+    mapping(uint256 => CityWeather) cities; // maps locationKey to matching CityData
+    mapping(uint256 => string) tokenIdLocations; // keeps track of which tokenId is located in which city
+    
     /* ========== CONSTRUCTOR ========== */
     /**
      * @param _link the LINK token address.
@@ -116,9 +119,12 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721, Ownable {
     }
 
     /* ========== NFT FUNCTIONS ========== */
-    //function _safeMint(to, tokenId);
-    
-
+    function safeMint(address to) public onlyOwner {
+        uint256 tokenId = _tokenIdCounter.current();
+        tokenIdLocations[tokenId] = "Berlin"; // all newly minted NFTs start out in Berlin
+        _tokenIdCounter.increment();
+        _safeMint(to, tokenId);
+    }
     function move(uint256 tokenId, uint256 locationKey) public {
         //Change locationKey of users NFT[tokenId]
     }
