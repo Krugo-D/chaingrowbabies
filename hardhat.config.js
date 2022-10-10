@@ -11,8 +11,8 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   }
 });
 
-const mnemonic = process.env.MNEMONIC;
-const alchemyUrl = process.env.ALCHEMY_URL;
+//const mnemonic = process.env.MNEMONIC;
+//const alchemyUrl = process.env.ALCHEMY_URL;
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -22,13 +22,9 @@ module.exports = {
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {
-      //url: alchemyUrl,
       forking: {
-        url: alchemyUrl
+        url: 'https://rpc.goerli.mudit.blog/'
       },
-      //accounts: {
-      //  mnemonic: "test test test test test test test test test test test junk"
-      //},
     }
   }
 };
