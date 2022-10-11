@@ -174,8 +174,6 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
         cities[locationKey].lastUpdated = block.timestamp;
     } 
 
-
-
     /* ========== OTHER FUNCTIONS ========== */
 
     function getOracleAddress() external view returns (address) {

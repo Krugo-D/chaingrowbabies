@@ -6,25 +6,39 @@
 const hre = require("hardhat");
 
 async function main() {
-  // Hardhat always runs the compile task when running scripts with its command
-  // line interface.
-  //
-  // If this script is run directly using `node` you may want to call compile
-  // manually to make sure everything is compiled
-  // await hre.run('compile');
-  const nftAddress = '0x48D662D1D10505f9bf25c993f30c40118A37E7a2';
+  const nftAddress = '0x85fe2Dcd9fBcb3311f04aF11a0CF59c1beAa46bB';
 
-  //get contract at
+  //get LINK token contract
   const linkAddress = '0x326C977E6efc84E512bB9C30f76E30c160eD06FB';
   const link = await hre.ethers.getContractAt("LinkTokenInterface", linkAddress);
-
-  //check NFT link balance (should be 0)
   //const nft = await hre.ethers.getContractAt("ChainGrowBabiesNFT", nftAddress);
   const nftLinkBalanceBefore = await link.balanceOf(nftAddress);
-  console.log(nftLinkBalanceBefore.toString())
-
-  //fund it
+  console.log('NFT contract balance before funding is: ' + nftLinkBalanceBefore / 1e18);
   
+  //impersonate LINK whale address
+  const accountToInpersonate = '0xE4dDb4233513498b5aa79B98bEA473b01b101a67';
+  await hre.network.provider.request({
+    method: "hardhat_impersonateAccount",
+    params: [accountToInpersonate],
+  });
+  const signer = await ethers.getSigner(accountToInpersonate);
+  
+  const whaleLinkBalance = await link.balanceOf(accountToInpersonate);
+  console.log('Whale LINK balance is: ' + whaleLinkBalance / 1e18);
+  console.log("transfering LINK to", nftAddress);
+
+  //
+  await link.connect(signer).transfer(nftAddress, whaleLinkBalance);
+  const accountBalance = await link.balanceOf(nftAddress);
+
+  console.log("transfer complete");
+
+  const whaleBalanceAfter = await link.balanceOf(accountToInpersonate)
+  console.log("Whale LINK balance after funding is: ", whaleBalanceAfter / 1e18)
+
+  const nftLinkBalanceAfter = await link.balanceOf(nftAddress);
+  console.log("NFT contract LINK balance after funding is: ", nftLinkBalanceAfter / 1e18)
+
   
 }
 

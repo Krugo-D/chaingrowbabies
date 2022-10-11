@@ -29,7 +29,9 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: 'https://rpc.goerli.mudit.blog/'
+        url: 'https://goerli.infura.io/v3/84842078b09946638c03157f83405213',
+        blockNumber: 7382817
+
       },
     }
   }
