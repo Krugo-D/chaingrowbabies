@@ -79,6 +79,40 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
     }
 
 
+    function generateCharacter(uint256 tokenId) public returns(string memory) {
+        bytes memory svg = abi.encodePacked(
+            '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350">',
+            '<style>.base { fill: white; font-family: serif; font-size: 14px; }</style>',
+            '<rect width="100%" height="100%" fill="black" />',
+            '<text x="50%" y="40%" class="base" dominant-baseline="middle" text-anchor="middle">',"ChainGrowBaby",'</text>',
+            '<text x="50%" y="50%" class="base" dominant-baseline="middle" text-anchor="middle">', "Location: ",babies[tokenId].locationKey,'</text>',
+            '</svg>'
+        );
+        return string(
+            abi.encodePacked(
+                "data:image/svg+xml;base64,",
+                Base64.encode(svg)
+            )    
+        );
+    }
+
+    function getTokenURI(uint256 tokenId) public returns (string memory) {
+        bytes memory dataURI = abi.encodePacked(
+            '{',
+                '"name": "ChainGrowBaby #', tokenId.toString(), '",',
+                '"description": "Grows on-chain!",',
+                '"image": "', generateCharacter(tokenId), '"',
+            '}'
+        );
+        return string(
+            abi.encodePacked(
+                "data:application/json;base64,",
+                Base64.encode(dataURI)
+            )
+        );
+    }
+
+
 
     /* ========== ORACLE REQUEST & FULFILL FUNCTIONS ========== */
 
