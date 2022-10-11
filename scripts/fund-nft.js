@@ -12,21 +12,20 @@ async function main() {
   // If this script is run directly using `node` you may want to call compile
   // manually to make sure everything is compiled
   // await hre.run('compile');
-  const nftAddress = '0xa0945a7aC164287B4e6B8f234337820807074a29';
+  const nftAddress = '0x48D662D1D10505f9bf25c993f30c40118A37E7a2';
 
   //get contract at
   const linkAddress = '0x326C977E6efc84E512bB9C30f76E30c160eD06FB';
   const link = await hre.ethers.getContractAt("LinkTokenInterface", linkAddress);
 
-  // check NFT link balance (should be 0)
-  const NFT = await hre.ethers.getContractAt("ChainGrowBabiesNFT", nftAddress);
-  const nft = await NFT.deploy(linkAddress, oracleAddress, token.address);
+  //check NFT link balance (should be 0)
+  //const nft = await hre.ethers.getContractAt("ChainGrowBabiesNFT", nftAddress);
+  const nftLinkBalanceBefore = await link.balanceOf(nftAddress);
+  console.log(nftLinkBalanceBefore.toString())
 
-
-
-  await nft.deployed();
-
-  console.log("NFT deployed to:", nft.address);
+  //fund it
+  
+  
 }
 
 // We recommend this pattern to be able to use async/await everywhere
