@@ -78,14 +78,20 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
         moveCost = newMoveCost;
     }
 
-
+    //possibly remove getter functions and access cities mapping directly?
     function generateCharacter(uint256 tokenId) public returns(string memory) {
         bytes memory svg = abi.encodePacked(
             '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350">',
             '<style>.base { fill: white; font-family: serif; font-size: 14px; }</style>',
             '<rect width="100%" height="100%" fill="black" />',
             '<text x="50%" y="40%" class="base" dominant-baseline="middle" text-anchor="middle">',"ChainGrowBaby",'</text>',
-            '<text x="50%" y="50%" class="base" dominant-baseline="middle" text-anchor="middle">', "Location: ",babies[tokenId].locationKey,'</text>',
+            '<text x="50%" y="50%" class="base" dominant-baseline="middle" text-anchor="middle">', "Location: ",getLocationKey(tokenId),'</text>',
+            '<text x="50%" y="50%" class="base" dominant-baseline="middle" text-anchor="middle">', "Location: ",getGrowth(tokenId),'</text>',
+            '<text x="50%" y="50%" class="base" dominant-baseline="middle" text-anchor="middle">', "Location: ",getStamina(tokenId),'</text>',            
+            '<text x="50%" y="50%" class="base" dominant-baseline="middle" text-anchor="middle">', "Location: ",getAgility(tokenId),'</text>',
+            '<text x="50%" y="50%" class="base" dominant-baseline="middle" text-anchor="middle">', "Location: ",getEnergy(tokenId),'</text>',            
+            '<text x="50%" y="50%" class="base" dominant-baseline="middle" text-anchor="middle">', "Location: ",getLastMoved(tokenId),'</text>',            
+            '<text x="50%" y="50%" class="base" dominant-baseline="middle" text-anchor="middle">', "Location: ",getLastClaimed(tokenId),'</text>',            
             '</svg>'
         );
         return string(
@@ -110,6 +116,35 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
                 Base64.encode(dataURI)
             )
         );
+    }
+
+    function getLocationKey(uint256 tokenId) public view returns (string memory) {
+        uint256 locationKey = babies[tokenId].locationKey;
+        return locationKey.toString();
+    }
+    function getGrowth(uint256 tokenId) public view returns (string memory) {
+        uint256 growth = babies[tokenId].growth;
+        return growth.toString();
+    }
+    function getStamina(uint256 tokenId) public view returns (string memory) {
+        uint256 stamina = babies[tokenId].stamina;
+        return stamina.toString();
+    }
+    function getAgility(uint256 tokenId) public view returns (string memory) {
+        uint256 agility = babies[tokenId].agility;
+        return agility.toString();
+    }
+    function getEnergy(uint256 tokenId) public view returns (string memory) {
+        uint256 energy = babies[tokenId].energy;
+        return energy.toString();
+    }
+    function getLastMoved(uint256 tokenId) public view returns (string memory) {
+        uint256 lastMoved = babies[tokenId].lastMoved;
+        return lastMoved.toString();
+    }
+    function getLastClaimed(uint256 tokenId) public view returns (string memory) {
+        uint256 lastClaimed = babies[tokenId].lastClaimed;
+        return lastClaimed.toString();
     }
 
 
