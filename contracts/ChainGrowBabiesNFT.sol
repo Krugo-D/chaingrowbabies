@@ -9,12 +9,6 @@ import "@openzeppelin/contracts/utils/Base64.sol";
 
 pragma solidity 0.8.9;
 
-/**
- * @title A consumer contract for AccuWeather EA 'location-current-conditions' endpoint.
- * @author LinkPool.
- * @notice Request the current weather conditions for the given location coordinates (i.e. latitude and longitude).
- * @dev Uses @chainlink/contracts 0.4.0.
- */
 contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
     using Chainlink for Chainlink.Request;
     using Strings for uint256;
@@ -39,6 +33,7 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
         uint256 lastClaimed; // timestamp of last growth claim
     }
 
+    // Game parameters
     bool public gameStarted = false;
     uint256 public mintCost;
     uint256 public moveCost;
@@ -60,14 +55,34 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
 
 
     /* ========== NFT FUNCTIONS ========== */
-    function safeMint(address to) public onlyOwner {
-        uint256 tokenId = _tokenIds.current();
+
+    //hardcoded now but will use Chainlink VRF for random characteristics (1-10)
+    function mint() public {
         _tokenIds.increment();
-        _safeMint(to, tokenId);
+        uint256 newItemId = _tokenIds.current();
+        _safeMint(msg.sender, newItemId);
+        //call VRF oracle here and feed return data in to the struct
+        babies[newItemId].locationKey = 0;
+        babies[newItemId].growth = 0;
+        babies[newItemId].stamina = 6;
+        babies[newItemId].agility = 2;
+        babies[newItemId].energy = 9;
+        babies[newItemId].lastMoved = 0;
+        babies[newItemId].lastClaimed = 0;     
+        _setTokenURI(newItemId, getTokenURI(newItemId));
     }
 
     function move(uint256 tokenId, uint256 locationKey) public {
+        require(_exists(tokenId), "Please use an existing token");
+        require(ownerOf(tokenId) == msg.sender, "You must own this token to train it");
+        require(canMove(tokenId));
+        babies[tokenId].locationKey == locationKey;
+        babies[tokenId].lastMoved = block.timestamp;
         //Change locationKey of users NFT[tokenId]
+    }
+
+    function canMove(uint256 tokenId) public returns(bool) {
+
     }
 
     function setMintCost(uint256 newMintCost) public onlyOwner {
@@ -79,7 +94,7 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
     }
 
     //possibly remove getter functions and access cities mapping directly?
-    function generateCharacter(uint256 tokenId) public returns(string memory) {
+    function generateCharacter(uint256 tokenId) public view returns(string memory) {
         bytes memory svg = abi.encodePacked(
             '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350">',
             '<style>.base { fill: white; font-family: serif; font-size: 14px; }</style>',
@@ -102,7 +117,7 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
         );
     }
 
-    function getTokenURI(uint256 tokenId) public returns (string memory) {
+    function getTokenURI(uint256 tokenId) public view returns (string memory) {
         bytes memory dataURI = abi.encodePacked(
             '{',
                 '"name": "ChainGrowBaby #', tokenId.toString(), '",',
@@ -158,6 +173,7 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
         cities[locationKey].windSpeed = _windSpeed;
         cities[locationKey].lastUpdated = block.timestamp;
     } 
+
 
 
     /* ========== OTHER FUNCTIONS ========== */
