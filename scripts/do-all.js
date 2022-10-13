@@ -9,8 +9,8 @@ async function main() {
   console.log("Token deployed to:", token.address);
 
   //deploy NFT
-  const linkAddress = '0x326C977E6efc84E512bB9C30f76E30c160eD06FB'
-  const oracleAddress = '0xB9756312523826A566e222a34793E414A81c88E1'
+  const linkAddress = '0x326C977E6efc84E512bB9C30f76E30c160eD06FB';
+  const oracleAddress = '0xB9756312523826A566e222a34793E414A81c88E1';
   const NFT = await hre.ethers.getContractFactory("ChainGrowBabiesNFT");
   const nft = await NFT.deploy(linkAddress, oracleAddress, token.address);
   await nft.deployed();
@@ -40,20 +40,27 @@ async function main() {
   console.log("transfer complete");
 
   const nftLinkBalanceAfter = await link.balanceOf(nft.address);
-  console.log("NFT contract LINK balance after funding is: ", nftLinkBalanceAfter / 1e18)
+  console.log("NFT contract LINK balance after funding is: ", nftLinkBalanceAfter / 1e18);
 
-  const whaleBalanceAfter = await link.balanceOf(accountToInpersonate)
-  console.log("Whale LINK balance after funding is: ", whaleBalanceAfter / 1e18)
+  const whaleBalanceAfter = await link.balanceOf(accountToInpersonate);
+  console.log("Whale LINK balance after funding is: ", whaleBalanceAfter / 1e18);
   
-  //mint NFT
+  //mint 3 NFTs
   //create instance of NFT contract
-
   const accounts = await hre.ethers.getSigners();
 
-  await nft.mint();
-  const character = await nft.generateCharacter(1);
-  console.log(character);
-  
+  for (let i = 0; i < 3; i++) {
+    await nft.mint();
+    console.log(`Nft #${i} minted`)
+    console.log('\n')
+  }
+
+  for (let i = 1; i < 4; i++) {
+    const tokenURI = await nft.getTokenURI(i);
+    console.log(tokenURI + '\n\n');
+    console.log('\n')
+  }
+
 }
 
 // We recommend this pattern to be able to use async/await everywhere

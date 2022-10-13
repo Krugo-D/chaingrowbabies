@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 
+
 pragma solidity 0.8.9;
 
 contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
@@ -24,8 +25,8 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
     }
 
     struct Baby {
-        uint256 locationKey; // where is your baby
         uint256 growth; // how close to harvest is your baby
+        uint256 locationKey; // where is your baby
         uint256 stamina; // how often can your baby move
         uint256 agility; // how quick can your baby move
         uint256 energy; // how often can your baby move
@@ -37,6 +38,7 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
     bool public gameStarted = false;
     uint256 public mintCost;
     uint256 public moveCost;
+    uint256 private seed;
 
     mapping(uint256 => City) public cities; // maps locationKey to matching CityData
     mapping(uint256 => Baby) public babies; // keeps track of which tokenId is located in which city
@@ -56,20 +58,25 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
 
     /* ========== NFT FUNCTIONS ========== */
 
-    //hardcoded now but will use Chainlink VRF for random characteristics (1-10)
     function mint() public {
+        require(msg.sender == tx.origin, "Reverting, Method can only be called directly by user");
+        
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
         _safeMint(msg.sender, newItemId);
-        //call VRF oracle here and feed return data in to the struct
-        babies[newItemId].locationKey = 0;
+        babies[newItemId].locationKey = random(8);
         babies[newItemId].growth = 0;
-        babies[newItemId].stamina = 6;
-        babies[newItemId].agility = 2;
-        babies[newItemId].energy = 9;
-        babies[newItemId].lastMoved = 0;
-        babies[newItemId].lastClaimed = 0;     
+        babies[newItemId].stamina = random(10);
+        babies[newItemId].agility = random(10);
+        babies[newItemId].energy = random(10);
+        babies[newItemId].lastMoved = block.timestamp;
+        babies[newItemId].lastClaimed = block.timestamp;     
         _setTokenURI(newItemId, getTokenURI(newItemId));
+    }
+
+    function random(uint256 _modulus) private returns (uint) {
+        seed ++;
+        return uint(keccak256(abi.encodePacked(block.difficulty, block.timestamp, msg.sender, seed))) % _modulus;
     }
 
     function move(uint256 tokenId, uint256 locationKey) public {
@@ -82,7 +89,7 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
     }
 
     function canMove(uint256 tokenId) public returns(bool) {
-
+        
     }
 
     function setMintCost(uint256 newMintCost) public onlyOwner {
@@ -93,15 +100,14 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
         moveCost = newMoveCost;
     }
 
-    //possibly remove getter functions and access cities mapping directly?
     function generateCharacter(uint256 tokenId) public view returns(string memory) {
         bytes memory svg = abi.encodePacked(
             '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350">',
             '<style>.base { fill: white; font-family: serif; font-size: 14px; }</style>',
             '<rect width="100%" height="100%" fill="black" />',
-            '<text x="50%" y="20%" class="base" dominant-baseline="middle" text-anchor="middle">',"ChainGrowBaby",'</text>',
-            '<text x="50%" y="30%" class="base" dominant-baseline="middle" text-anchor="middle">', "Location: ",(babies[tokenId].locationKey).toString(),'</text>',
+            '<text x="50%" y="20%" class="base" dominant-baseline="middle" text-anchor="middle">',"ChainGrowBaby #",(tokenId).toString(),'</text>',
             '<text x="50%" y="40%" class="base" dominant-baseline="middle" text-anchor="middle">', "Growth: ",(babies[tokenId].growth).toString(),'</text>',
+            '<text x="50%" y="30%" class="base" dominant-baseline="middle" text-anchor="middle">', "Location: ",(babies[tokenId].locationKey).toString(),'</text>',
             '<text x="50%" y="50%" class="base" dominant-baseline="middle" text-anchor="middle">', "Stamina: ",(babies[tokenId].stamina).toString(),'</text>',            
             '<text x="50%" y="60%" class="base" dominant-baseline="middle" text-anchor="middle">', "Agility: ",(babies[tokenId].agility).toString(),'</text>',
             '<text x="50%" y="70%" class="base" dominant-baseline="middle" text-anchor="middle">', "Energy: ",(babies[tokenId].energy).toString(),'</text>',            
