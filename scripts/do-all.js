@@ -1,12 +1,20 @@
+const { ethers } = require("hardhat");
 const hre = require("hardhat");
 
 async function main() {
+  //get signers
+  const [owner, addr1, addr2] = await ethers.getSigners();
+  const mintPrice = 1 * 10^18
 
   //deploy token
   const Token = await hre.ethers.getContractFactory("ChainGrowBabiesToken");
   const token = await Token.deploy();
   await token.deployed();
-  console.log("Token deployed to:", token.address);
+  console.log("\nToken deployed to:", token.address);
+
+  //send tokens from owner to user1 address
+  token.connect(owner).transfer(addr1.address, 3 * mintPrice);
+  console.log('\n3 * 10^18 tokens transferred from owner to user1');
 
   //deploy NFT
   const linkAddress = '0x326C977E6efc84E512bB9C30f76E30c160eD06FB';
@@ -14,52 +22,46 @@ async function main() {
   const NFT = await hre.ethers.getContractFactory("ChainGrowBabiesNFT");
   const nft = await NFT.deploy(linkAddress, oracleAddress, token.address);
   await nft.deployed();
-  console.log("NFT deployed to:", nft.address);
+  console.log("\nNFT deployed to:", nft.address);
 
-  //fund NFT
-  const link = await hre.ethers.getContractAt("LinkTokenInterface", linkAddress);
-  const nftLinkBalanceBefore = await link.balanceOf(nft.address);
-  console.log('NFT contract balance before funding is: ' + nftLinkBalanceBefore / 1e18);
-  
-  //impersonate LINK whale address
-  const accountToInpersonate = '0xE4dDb4233513498b5aa79B98bEA473b01b101a67';
-  await hre.network.provider.request({
-    method: "hardhat_impersonateAccount",
-    params: [accountToInpersonate],
-  });
-  const signer = await ethers.getSigner(accountToInpersonate);
-  
-  const whaleLinkBalance = await link.balanceOf(accountToInpersonate);
-  console.log('Whale LINK balance is: ' + whaleLinkBalance / 1e18);
-  console.log("transfering LINK to", nft.address);
+  //approve NFT contract to spent user1's tokens
+  token.connect(addr1).approve(nft.address, 3 * mintPrice);
+  const allowanceAmount = await token.allowance(addr1.address, nft.address);
+  const allowanceAmountString = allowanceAmount.toString();
+  console.log(`allowance amount is: ${allowanceAmountString}`);
 
+  //impersonate LINK whale address and send LINK to NFT contract
+  //const link = await hre.ethers.getContractAt("LinkTokenInterface", linkAddress);
   //
-  await link.connect(signer).transfer(nft.address, whaleLinkBalance);
-  const accountBalance = await link.balanceOf(nft.address);
-
-  console.log("transfer complete");
-
-  const nftLinkBalanceAfter = await link.balanceOf(nft.address);
-  console.log("NFT contract LINK balance after funding is: ", nftLinkBalanceAfter / 1e18);
-
-  const whaleBalanceAfter = await link.balanceOf(accountToInpersonate);
-  console.log("Whale LINK balance after funding is: ", whaleBalanceAfter / 1e18);
+  //const accountToInpersonate = '0xE4dDb4233513498b5aa79B98bEA473b01b101a67';
+  //await hre.network.provider.request({
+  //  method: "hardhat_impersonateAccount",
+  //  params: [accountToInpersonate],
+  //});
+  //
+  //const linkWhale = await ethers.getSigner(accountToInpersonate);
+  //const linkWhaleBalance = await link.balanceOf(linkWhale.address);
+  //await link.connect(linkWhale).transfer(nft.address, linkWhaleBalance);
+  //const nftLinkBalanceAfter = await link.balanceOf(nft.address);
+  //console.log("\nNFT contract LINK balance after funding is: ", nftLinkBalanceAfter / 1e18);
   
-  //mint 3 NFTs
-  //create instance of NFT contract
-  const accounts = await hre.ethers.getSigners();
+  /*
 
+  //mint 3 NFTs
   for (let i = 0; i < 3; i++) {
-    await nft.mint();
+    await nft.connect(addr1).mint();
     console.log(`Nft #${i} minted`)
     console.log('\n')
   }
 
+  //log tokenURI's
   for (let i = 1; i < 4; i++) {
     const tokenURI = await nft.getTokenURI(i);
     console.log(tokenURI + '\n\n');
     console.log('\n')
   }
+
+  */
 
 }
 
