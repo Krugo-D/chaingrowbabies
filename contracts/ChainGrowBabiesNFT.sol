@@ -15,9 +15,10 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
     using Strings for uint256;
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
-    IERC20 private _token;
+    IERC20 private token;
 
     struct City {
+        string name;
         uint24 precipitationPastHour;
         int16 temperature;
         uint16 windSpeed;
@@ -36,7 +37,7 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
 
     // Game parameters
     bool public gameStarted = false;
-    uint256 public mintCost;
+    uint256 public mintCost = 1 ether;
     uint256 public moveCost;
     uint256 private seed;
 
@@ -49,10 +50,19 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
      * @param _link the LINK token address.
      * @param _oracle the Operator.sol contract address.
      */
-    constructor(address _link, address _oracle, IERC20 token) ERC721("ChainGrowBabies", "CGB") {
+    constructor(address _link, address _oracle, IERC20 _token) ERC721("ChainGrowBabies", "CGB") {
         setChainlinkToken(_link);
         setChainlinkOracle(_oracle);
-        _token = token;
+        token = _token;
+
+        //map cities
+        cities[0].name = 'Berlin';
+        cities[1].name = 'London';
+        cities[2].name = 'Shanghai';
+        cities[3].name = 'Cancun';
+        cities[4].name = 'Prague';
+        cities[5].name = 'Osaka';
+        cities[6].name = 'Bogota';
     }
 
 
@@ -60,11 +70,11 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
 
     function mint() public {
         require(msg.sender == tx.origin, "Reverting, Method can only be called directly by user");
-        
+        token.transferFrom(msg.sender, address(this), mintCost);
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
         _safeMint(msg.sender, newItemId);
-        babies[newItemId].locationKey = random(8);
+        babies[newItemId].locationKey = random(7);
         babies[newItemId].growth = 0;
         babies[newItemId].stamina = random(10);
         babies[newItemId].agility = random(10);
@@ -105,7 +115,7 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
             '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350">',
             '<style>.base { fill: white; font-family: serif; font-size: 14px; }</style>',
             '<rect width="100%" height="100%" fill="black" />',
-            '<text x="50%" y="20%" class="base" dominant-baseline="middle" text-anchor="middle">',"ChainGrowBaby #",(tokenId).toString(),'</text>',
+            '<text x="50%" y="20%" class="base" dominant-baseline="middle" text-anchor="middle">',"ChainGrowBaby #",(tokenId).toString(),' / 100</text>',
             '<text x="50%" y="40%" class="base" dominant-baseline="middle" text-anchor="middle">', "Growth: ",(babies[tokenId].growth).toString(),'</text>',
             '<text x="50%" y="30%" class="base" dominant-baseline="middle" text-anchor="middle">', "Location: ",(babies[tokenId].locationKey).toString(),'</text>',
             '<text x="50%" y="50%" class="base" dominant-baseline="middle" text-anchor="middle">', "Stamina: ",(babies[tokenId].stamina).toString(),'</text>',            
