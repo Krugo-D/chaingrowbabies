@@ -135,7 +135,6 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
         parts[14] = '</text><text x="10" y="160" class="base">';
 
         parts[15] = string(abi.encodePacked('Harvested: ', (babies[tokenId].harvested == true ? 'true' : 'false')));
-        //parts[15] = babies[tokenId].harvested == true ? 'true' : 'false';
 
         parts[16] = '</text></svg>';
 
