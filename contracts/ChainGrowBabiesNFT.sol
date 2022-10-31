@@ -33,11 +33,12 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
         uint256 energy; // how often can your baby move
         uint256 lastMoved; // timestamp of last move
         uint256 lastClaimed; // timestamp of last growth claim
+        bool harvested; // turns true when player harvests baby
     }
 
     // Game parameters
     bool public gameStarted = false;
-    uint256 public mintCost = 1 ether;
+    uint256 public mintCost = 100_000_000_000_000_000;
     uint256 public moveCost;
     uint256 private seed;
 
@@ -54,23 +55,14 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
         setChainlinkToken(_link);
         setChainlinkOracle(_oracle);
         token = _token;
-
-        //map cities
-        cities[0].name = 'Berlin';
-        cities[1].name = 'London';
-        cities[2].name = 'Shanghai';
-        cities[3].name = 'Cancun';
-        cities[4].name = 'Prague';
-        cities[5].name = 'Osaka';
-        cities[6].name = 'Bogota';
     }
 
 
     /* ========== NFT FUNCTIONS ========== */
 
-    function mint() public {
+    function mint() public payable {
         require(msg.sender == tx.origin, "Reverting, Method can only be called directly by user");
-        token.transferFrom(msg.sender, address(this), mintCost);
+        //require(msg.value >= mintCost, "Not enough ETH sent; check mint price!");
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
         _safeMint(msg.sender, newItemId);
@@ -81,7 +73,7 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
         babies[newItemId].energy = random(10);
         babies[newItemId].lastMoved = block.timestamp;
         babies[newItemId].lastClaimed = block.timestamp;     
-        _setTokenURI(newItemId, getTokenURI(newItemId));
+        _setTokenURI(newItemId, tokenURI(newItemId));
     }
 
     function random(uint256 _modulus) private returns (uint) {
@@ -110,43 +102,49 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
         moveCost = newMoveCost;
     }
 
-    function generateCharacter(uint256 tokenId) public view returns(string memory) {
-        bytes memory svg = abi.encodePacked(
-            '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350">',
-            '<style>.base { fill: white; font-family: serif; font-size: 14px; }</style>',
-            '<rect width="100%" height="100%" fill="black" />',
-            '<text x="50%" y="20%" class="base" dominant-baseline="middle" text-anchor="middle">',"ChainGrowBaby #",(tokenId).toString(),' / 100</text>',
-            '<text x="50%" y="40%" class="base" dominant-baseline="middle" text-anchor="middle">', "Growth: ",(babies[tokenId].growth).toString(),'</text>',
-            '<text x="50%" y="30%" class="base" dominant-baseline="middle" text-anchor="middle">', "Location: ",(babies[tokenId].locationKey).toString(),'</text>',
-            '<text x="50%" y="50%" class="base" dominant-baseline="middle" text-anchor="middle">', "Stamina: ",(babies[tokenId].stamina).toString(),'</text>',            
-            '<text x="50%" y="60%" class="base" dominant-baseline="middle" text-anchor="middle">', "Agility: ",(babies[tokenId].agility).toString(),'</text>',
-            '<text x="50%" y="70%" class="base" dominant-baseline="middle" text-anchor="middle">', "Energy: ",(babies[tokenId].energy).toString(),'</text>',            
-            '<text x="50%" y="80%" class="base" dominant-baseline="middle" text-anchor="middle">', "LastMoved: ",(babies[tokenId].lastMoved).toString(),'</text>',            
-            '<text x="50%" y="90%" class="base" dominant-baseline="middle" text-anchor="middle">', "LastClaimed: ",(babies[tokenId].lastClaimed).toString(),'</text>',            
-            '</svg>'
-        );
-        return string(
-            abi.encodePacked(
-                "data:image/svg+xml;base64,",
-                Base64.encode(svg)
-            )    
-        );
-    }
+    function tokenURI(uint256 tokenId) override public view returns (string memory) {
+        string[17] memory parts;
+        parts[0] = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="black" /><text x="10" y="20" class="base">';
 
-    function getTokenURI(uint256 tokenId) public view returns (string memory) {
-        bytes memory dataURI = abi.encodePacked(
-            '{',
-                '"name": "ChainGrowBaby #', tokenId.toString(), '",',
-                '"description": "Grows on-chain!",',
-                '"":image "', generateCharacter(tokenId), '"',
-            '}'
-        );
-        return string(
-            abi.encodePacked(
-                "data:application/json;base64,",
-                Base64.encode(dataURI)
-            )
-        );
+        parts[1] = (babies[tokenId].growth).toString();
+
+        parts[2] = '</text><text x="10" y="40" class="base">';
+
+        parts[3] = (babies[tokenId].locationKey).toString();
+
+        parts[4] = '</text><text x="10" y="60" class="base">';
+
+        parts[5] = (babies[tokenId].stamina).toString();
+
+        parts[6] = '</text><text x="10" y="80" class="base">';
+
+        parts[7] = (babies[tokenId].agility).toString();
+
+        parts[8] = '</text><text x="10" y="100" class="base">';
+
+        parts[9] = (babies[tokenId].energy).toString();
+
+        parts[10] = '</text><text x="10" y="120" class="base">';
+
+        parts[11] = (babies[tokenId].lastMoved).toString();
+
+        parts[12] = '</text><text x="10" y="140" class="base">';
+
+        parts[13] = (babies[tokenId].lastClaimed).toString();
+
+        parts[14] = '</text><text x="10" y="160" class="base">';
+
+        parts[15] = babies[tokenId].harvested == true ? 'true' : 'false';
+
+        parts[16] = '</text></svg>';
+
+        string memory output = string(abi.encodePacked(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7], parts[8]));
+        output = string(abi.encodePacked(output, parts[9], parts[10], parts[11], parts[12], parts[13], parts[14], parts[15], parts[16]));
+        
+        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "Baby #', (tokenId).toString(), '", "description": "ChainGrowBabies are a collection of ...", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '"}'))));
+        output = string(abi.encodePacked('data:application/json;base64,', json));
+
+        return output;
     }
 
     /* ========== ORACLE REQUEST & FULFILL FUNCTIONS ========== */
