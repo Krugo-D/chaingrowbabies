@@ -106,35 +106,36 @@ contract ChainGrowBabiesNFT is ChainlinkClient, ERC721URIStorage, Ownable {
         string[17] memory parts;
         parts[0] = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="black" /><text x="10" y="20" class="base">';
 
-        parts[1] = (babies[tokenId].growth).toString();
+        parts[1] = string(abi.encodePacked('Growth: ', (babies[tokenId].growth).toString()));
 
         parts[2] = '</text><text x="10" y="40" class="base">';
 
-        parts[3] = (babies[tokenId].locationKey).toString();
+        parts[3] = string(abi.encodePacked('Location: ', (babies[tokenId].locationKey).toString()));
 
         parts[4] = '</text><text x="10" y="60" class="base">';
 
-        parts[5] = (babies[tokenId].stamina).toString();
+        parts[5] = string(abi.encodePacked('Stamina: ', (babies[tokenId].stamina).toString()));
 
         parts[6] = '</text><text x="10" y="80" class="base">';
 
-        parts[7] = (babies[tokenId].agility).toString();
+        parts[7] = string(abi.encodePacked('Agility: ', (babies[tokenId].agility).toString()));
 
         parts[8] = '</text><text x="10" y="100" class="base">';
 
-        parts[9] = (babies[tokenId].energy).toString();
+        parts[9] = string(abi.encodePacked('Energy: ', (babies[tokenId].energy).toString()));
 
         parts[10] = '</text><text x="10" y="120" class="base">';
 
-        parts[11] = (babies[tokenId].lastMoved).toString();
+        parts[11] = string(abi.encodePacked('Last moved: ', (babies[tokenId].lastMoved).toString()));
 
         parts[12] = '</text><text x="10" y="140" class="base">';
 
-        parts[13] = (babies[tokenId].lastClaimed).toString();
+        parts[13] = string(abi.encodePacked('Last claimed: ', (babies[tokenId].lastClaimed).toString()));
 
         parts[14] = '</text><text x="10" y="160" class="base">';
 
-        parts[15] = babies[tokenId].harvested == true ? 'true' : 'false';
+        parts[15] = string(abi.encodePacked('Harvested: ', (babies[tokenId].harvested == true ? 'true' : 'false')));
+        //parts[15] = babies[tokenId].harvested == true ? 'true' : 'false';
 
         parts[16] = '</text></svg>';
 
